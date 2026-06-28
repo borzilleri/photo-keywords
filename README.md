@@ -62,6 +62,18 @@ Drop `--limit` from the export step to process everything. `classify.py` and
 `apply_keywords.py` always operate on whatever is in the manifest/results, and both are
 resumable/idempotent, so you can stop and restart safely.
 
+## Scheduled / unattended (launchd)
+
+For hands-off daily tagging of newly-added photos on a Mac, `src/run.py` is a config-driven
+orchestrator (export → classify → auto-write → report → advance watermark) meant to be driven by
+a launchd LaunchAgent. It processes only photos added since the last run (import-time watermark +
+lookback window, deduped against `results.jsonl`).
+
+- **Set up / install:** see [`INSTALL.md`](./INSTALL.md).
+- **Verify access + token:** `python src/preflight.py` (the "doctor" — checks Full Disk Access,
+  Automation→Photos, binaries, and a live Claude auth test).
+- **Configure:** `config.json` (copy from `config.example.json`).
+
 ## Tuning
 
 - **Taxonomy** is `taxonomy.json` (canonical) mirrored by `docs/keywords.md`. It is nested
@@ -89,4 +101,10 @@ resumable/idempotent, so you can stop and restart safely.
 | `src/classify.py` | Classify via `claude -p`, write `results.jsonl` |
 | `src/apply_keywords.py` | Append keywords into Photos via `osxphotos batch-edit` |
 | `src/report.py` | Markdown report of photos that matched no keyword |
-| `data/` | Generated: thumbnails, manifest, results, reports |
+| `src/run.py` | Scheduled orchestrator (incremental, auto-write) — the launchd entrypoint |
+| `src/preflight.py` | "Doctor": verify FDA, Automation, binaries, Claude token |
+| `src/{common,config,state}.py` | Shared logging/paths, config loading, watermark + lockfile |
+| `config.example.json` | Template for `config.json` (scheduled-run settings) |
+| `deploy/` | LaunchAgent plist template + `install.sh` |
+| `INSTALL.md` | Target-Mac setup runbook |
+| `data/` | Generated: thumbnails, manifest, results, state, reports |

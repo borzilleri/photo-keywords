@@ -5,7 +5,8 @@ Reads the manifest, sends each thumbnail to `claude -p` with a controlled-
 vocabulary prompt + JSON schema (built from taxonomy.json), and appends one
 validated record per photo to results.jsonl.
 
-  results.jsonl line: {"uuid","path","tags","confidence","reason","model"}
+  results.jsonl line: {"uuid","path","original_name","date","date_added",
+                       "tags","confidence","reason","description","model"}
 
 The taxonomy is hierarchical: the model selects the most specific CHILD keyword
 (e.g. "nature/water") or a standalone keyword (e.g. "food"). Multiple tags are
@@ -85,19 +86,20 @@ def build_schema(selectable):
     }
 
 
-def classify_one(rec, taxonomy_block, schema_json, thumbs_dir, model, timeout):
+def classify_one(rec, taxonomy_block, schema_json, model, timeout,
+                 claude_bin="claude", env=None):
     """Call claude -p for one photo. Returns the parsed object or {'error':...}."""
     prompt = PROMPT_TEMPLATE.format(image_path=rec["path"], taxonomy_block=taxonomy_block)
     cmd = [
-        "claude", "-p", prompt,
+        claude_bin, "-p", prompt,
         "--model", model,
         "--allowed-tools", "Read",
-        "--add-dir", thumbs_dir,
+        "--add-dir", os.path.dirname(rec["path"]),
         "--output-format", "json",
         "--json-schema", schema_json,
     ]
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=env)
         if proc.returncode != 0:
             return {"error": f"claude exit {proc.returncode}: {proc.stderr.strip()[:200]}"}
         envelope = json.loads(proc.stdout)
@@ -107,6 +109,66 @@ def classify_one(rec, taxonomy_block, schema_json, thumbs_dir, model, timeout):
         return json.loads(result) if isinstance(result, str) else result
     except Exception as e:  # noqa: BLE001
         return {"error": f"exception: {e}"}
+
+
+def _result_record(rec, obj, selectable_set, model):
+    tags = [t for t in obj.get("tags", []) if t in selectable_set]
+    return {
+        "uuid": rec["uuid"], "path": rec["path"],
+        "original_name": rec.get("original_name"), "date": rec.get("date"),
+        "date_added": rec.get("date_added"), "tags": tags,
+        "confidence": float(obj.get("confidence", 0.0) or 0.0),
+        "reason": obj.get("reason", ""), "description": obj.get("description", ""),
+        "model": model,
+    }
+
+
+def classify_records(records, results_path, *, taxonomy_path=DEFAULT_TAXONOMY,
+                     model="sonnet", workers=3, timeout=120, claude_bin="claude",
+                     env=None, dry_run=False, logger=None):
+    """Classify a list of manifest records. Appends to results_path (unless dry_run).
+
+    Returns (counts, results) where counts = {tagged, none, err} and results is the
+    list of written record dicts (errored photos are skipped, not written).
+    """
+    selectable, taxonomy_block = load_taxonomy(taxonomy_path)
+    selectable_set = set(selectable)
+    schema_json = json.dumps(build_schema(selectable))
+
+    def emit(msg):
+        logger.info(msg) if logger else print(msg, file=sys.stderr)
+
+    lock = threading.Lock()
+    out = None if dry_run else open(results_path, "a")
+    counts = {"tagged": 0, "none": 0, "err": 0}
+    results = []
+
+    def handle(rec):
+        obj = classify_one(rec, taxonomy_block, schema_json, model, timeout, claude_bin, env)
+        if "error" in obj:
+            with lock:
+                counts["err"] += 1
+                emit(f"  ! {rec['uuid']}: {obj['error']}")
+            return
+        out_rec = _result_record(rec, obj, selectable_set, model)
+        with lock:
+            counts["tagged" if out_rec["tags"] else "none"] += 1
+            results.append(out_rec)
+            if out is not None:
+                out.write(json.dumps(out_rec) + "\n")
+                out.flush()
+            done = sum(counts.values())
+            if done % 25 == 0:
+                emit(f"  ... {done}/{len(records)}  tagged={counts['tagged']} "
+                     f"none={counts['none']} err={counts['err']}")
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        futures = [ex.submit(handle, r) for r in records]
+        for fut in as_completed(futures):
+            fut.result()
+    if out:
+        out.close()
+    return counts, results
 
 
 def main():
@@ -121,64 +183,26 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="Print results, do not write")
     args = ap.parse_args()
 
-    selectable, taxonomy_block = load_taxonomy(args.taxonomy)
-    selectable_set = set(selectable)
-    schema_json = json.dumps(build_schema(selectable))
-
     with open(args.manifest) as f:
         manifest = [json.loads(line) for line in f if line.strip()]
     if not manifest:
         sys.exit("Empty manifest. Run export_thumbnails.py first.")
-    thumbs_dir = os.path.dirname(manifest[0]["path"])
 
     done = set()
     if os.path.exists(args.results):
         with open(args.results) as f:
             done = {json.loads(line)["uuid"] for line in f if line.strip()}
-
     todo = [r for r in manifest if r["uuid"] not in done]
     if args.limit:
         todo = todo[: args.limit]
-    print(f"{len(todo)} to classify ({len(done)} already done), model={args.model}, workers={args.workers}",
+    print(f"{len(todo)} to classify ({len(done)} already done), model={args.model}, "
+          f"workers={args.workers}", file=sys.stderr)
+
+    counts, _ = classify_records(
+        todo, args.results, taxonomy_path=args.taxonomy, model=args.model,
+        workers=args.workers, timeout=args.timeout, dry_run=args.dry_run)
+    print(f"Done. tagged={counts['tagged']} no-match={counts['none']} errors={counts['err']}",
           file=sys.stderr)
-
-    lock = threading.Lock()
-    out = None if args.dry_run else open(args.results, "a")
-    n = {"tagged": 0, "none": 0, "err": 0}
-
-    def handle(rec):
-        obj = classify_one(rec, taxonomy_block, schema_json, thumbs_dir, args.model, args.timeout)
-        if "error" in obj:
-            with lock:
-                n["err"] += 1
-                print(f"  ! {rec['uuid']}: {obj['error']}", file=sys.stderr)
-            return  # don't write -> re-run retries this photo
-        tags = [t for t in obj.get("tags", []) if t in selectable_set]
-        out_rec = {"uuid": rec["uuid"], "path": rec["path"],
-                   "original_name": rec.get("original_name"), "date": rec.get("date"),
-                   "tags": tags, "confidence": float(obj.get("confidence", 0.0) or 0.0),
-                   "reason": obj.get("reason", ""), "description": obj.get("description", ""),
-                   "model": args.model}
-        with lock:
-            n["tagged" if tags else "none"] += 1
-            if out is None:
-                print(json.dumps(out_rec))
-            else:
-                out.write(json.dumps(out_rec) + "\n")
-                out.flush()
-            total = sum(n.values())
-            if total % 25 == 0:
-                print(f"  ... {total}/{len(todo)}  tagged={n['tagged']} none={n['none']} err={n['err']}",
-                      file=sys.stderr)
-
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futures = [ex.submit(handle, r) for r in todo]
-        for fut in as_completed(futures):
-            fut.result()
-
-    if out:
-        out.close()
-    print(f"Done. tagged={n['tagged']} no-match={n['none']} errors={n['err']}", file=sys.stderr)
 
 
 if __name__ == "__main__":

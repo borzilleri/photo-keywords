@@ -1,0 +1,12 @@
+{
+  "model": "sonnet",
+  "workers": 4,
+  "thumbnail_size": 1024,
+  "lookback_days": 7,
+  "min_confidence": 0.0,
+  "with_parents": false,
+  "apply_enabled": true,
+  "library_path": null,
+  "claude_bin": "claude",
+  "secrets_file": "~/.config/photo-keywords/env"
+}
