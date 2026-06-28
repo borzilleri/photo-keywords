@@ -1,0 +1,4 @@
+# Read the Apple Photos library, filter/query, export, and batch-edit keywords.
+osxphotos==0.76.1
+# Keyword writer used by osxphotos batch-edit (AppleScript bridge).
+photoscript==0.5.3

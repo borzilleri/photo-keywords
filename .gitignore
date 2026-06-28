@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Generated data & outputs
+data/
+logs/
+reports/
+*.log
+
+# Local config & secrets (commit config.example.json only)
+config.json
+.env
+*.env
+
+# Planning doc — excluded from VCS per request (delete this line to track it)
+docs/productionize-plan.md
+
+# macOS
+.DS_Store

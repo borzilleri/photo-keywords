@@ -1,0 +1,128 @@
+{
+  "_comment": "Canonical, machine-readable keyword taxonomy. SINGLE SOURCE OF TRUTH for classify.py and apply_keywords.py. docs/keywords.md is the human-readable rendering - keep them in sync. Hierarchical: a category with 'children' is a theme; the classifier selects the most specific CHILD (or a standalone keyword). The parent keyword itself is written only when apply_keywords is run with --with-parents. A photo may match multiple keywords, or NONE (empty result is valid).",
+  "categories": [
+    {
+      "keyword": "nature",
+      "definition": "the natural world",
+      "children": [
+        {
+          "keyword": "nature/landscape",
+          "definition": "Wide natural scenery with no single dominant feature - mountains, hills, fields, forests, deserts, valleys.",
+          "includes": ["mountain ranges", "rolling hills", "open fields", "forests as scenery", "deserts", "volcanic terrain"],
+          "excludes": ["nature/water if a body of water dominates", "nature/plants for a close-up of one plant", "nature/sky if the sky dominates", "urban/* if buildings dominate"],
+          "examples": ["a distant mountain range", "rolling green hills", "an arid volcanic plain"]
+        },
+        {
+          "keyword": "nature/water",
+          "definition": "A body of water is the dominant subject.",
+          "includes": ["ocean", "lakes", "rivers", "waterfalls", "harbors where water dominates"],
+          "excludes": ["nature/landscape if land/forest dominates and water is incidental", "nature/sky if the sky dominates over the water"],
+          "examples": ["waves on a shoreline", "a still lake", "a waterfall"]
+        },
+        {
+          "keyword": "nature/plants",
+          "definition": "A plant, flower, or foliage shown as the subject (typically close-up).",
+          "includes": ["a single flower", "a houseplant", "leaves or branches in detail", "a garden-bed close-up"],
+          "excludes": ["nature/landscape for wide vegetated scenery", "food for produce as a dish/ingredient"],
+          "examples": ["a rose in bloom", "a potted succulent", "macro of leaves"]
+        },
+        {
+          "keyword": "nature/sky",
+          "definition": "The sky itself is the clear dominant subject - little ground/foreground subject.",
+          "includes": ["sunsets", "sunrises", "dramatic clouds", "rainbows", "stars", "auroras"],
+          "excludes": ["nature/landscape or nature/water when a landscape/seascape shares the frame meaningfully"],
+          "examples": ["a sky of color at dusk", "the milky way", "storm clouds filling the frame"]
+        },
+        {
+          "keyword": "nature/animals",
+          "definition": "An animal is the subject - pets, wildlife, birds, insects, livestock.",
+          "includes": ["dogs", "cats", "birds", "deer", "fish", "insects"],
+          "excludes": ["food if the animal is plated as a meal"],
+          "examples": ["a cat on a couch", "a bird on a branch", "a squirrel mid-frame"]
+        }
+      ]
+    },
+    {
+      "keyword": "urban",
+      "definition": "the human-built environment",
+      "children": [
+        {
+          "keyword": "urban/cityscape",
+          "definition": "Streetscapes and cityscapes - the built environment at scene scale.",
+          "includes": ["city skylines", "streets", "blocks of buildings", "town squares", "construction sites"],
+          "excludes": ["urban/architecture when ONE building/detail is the subject", "indoor for interiors"],
+          "examples": ["a busy shopping street", "a skyline across a river", "a row of townhouses"]
+        },
+        {
+          "keyword": "urban/architecture",
+          "definition": "A single building, monument, bridge, or architectural detail presented as the subject.",
+          "includes": ["a cathedral facade", "a bridge as subject", "a staircase or arch detail", "one notable structure"],
+          "excludes": ["urban/cityscape for wide multi-building streetscapes", "art/* for sculptures/murals"],
+          "examples": ["a clock tower close shot", "an ornate doorway", "a bridge over a gorge"]
+        }
+      ]
+    },
+    {
+      "keyword": "art",
+      "definition": "visual artworks and created imagery",
+      "children": [
+        {
+          "keyword": "art/physical",
+          "definition": "Real-world artworks photographed in place: paintings, sculptures, murals, installations.",
+          "includes": ["a framed painting", "a statue or sculpture", "a wall mural", "a gallery installation"],
+          "excludes": ["urban/architecture for buildings", "document for text posters"],
+          "examples": ["a painting on a gallery wall", "a bronze statue", "a street mural"]
+        },
+        {
+          "keyword": "art/illustration",
+          "definition": "Drawn or digital 2D artwork that is not anime/manga and not game imagery.",
+          "includes": ["illustrations", "comics/cartoons", "concept art", "digital paintings", "stylized poster art"],
+          "excludes": ["art/anime for anime/manga style", "art/game for video-game imagery", "document for text/UI screenshots"],
+          "examples": ["a fantasy RPG character illustration", "a stylized digital figure", "a cartoon scene"]
+        },
+        {
+          "keyword": "art/anime",
+          "definition": "Anime or manga-style artwork or characters.",
+          "includes": ["anime characters", "manga panels", "anime-style scenes"],
+          "excludes": ["art/illustration for non-anime drawn art", "art/game for in-game imagery"],
+          "examples": ["an anime pilot in a cockpit", "a manga-style portrait"]
+        },
+        {
+          "keyword": "art/game",
+          "definition": "Video-game imagery: screenshots, key art, in-game scenes.",
+          "includes": ["game screenshots", "title/key art", "in-game HUD scenes"],
+          "excludes": ["document for app/website UI screenshots", "art/anime / art/illustration for standalone artwork"],
+          "examples": ["a game title screen", "an in-game landscape with HUD"]
+        }
+      ]
+    },
+    {
+      "keyword": "food",
+      "definition": "Prepared food, dishes, drinks, or ingredients shown as the subject.",
+      "includes": ["plated meals", "coffee/cocktails", "baked goods", "raw ingredients arranged as food"],
+      "excludes": ["nature/plants for a growing plant", "nature/animals for a live animal"],
+      "examples": ["a bowl of pasta", "a latte with foam art", "a poured glass of beer"]
+    },
+    {
+      "keyword": "vehicles",
+      "definition": "A real vehicle is the subject - land, air, water, or rail.",
+      "includes": ["cars", "motorcycles", "bicycles", "boats", "airplanes", "trains"],
+      "excludes": ["urban/cityscape if traffic is incidental to a streetscape", "art/* for illustrated/game vehicles"],
+      "examples": ["a parked sports car", "a sailboat", "a plane on a runway"]
+    },
+    {
+      "keyword": "indoor",
+      "definition": "A generic indoor scene or room not better captured by a more specific keyword.",
+      "includes": ["living rooms", "office interiors", "cafe interiors", "hallways"],
+      "excludes": ["food for a meal close-up", "document for screenshots/paperwork", "art/* for artworks"],
+      "examples": ["a furnished room", "an empty restaurant interior", "a lobby"]
+    },
+    {
+      "keyword": "document",
+      "definition": "Text- or UI-dominant captures: app/website screenshots, paperwork, signs, whiteboards.",
+      "includes": ["app/website screenshots", "receipts", "tickets", "whiteboards", "pages of text", "text-focused signs"],
+      "excludes": ["art/game for video-game imagery", "art/physical for posters valued as artwork"],
+      "examples": ["an app screenshot", "a photographed receipt", "a whiteboard of notes"]
+    }
+  ]
+}
