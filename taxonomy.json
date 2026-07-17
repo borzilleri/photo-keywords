@@ -104,20 +104,6 @@
       "examples": ["a bowl of pasta", "a latte with foam art", "a poured glass of beer"]
     },
     {
-      "keyword": "vehicles",
-      "definition": "A real vehicle is the subject - land, air, water, or rail.",
-      "includes": ["cars", "motorcycles", "bicycles", "boats", "airplanes", "trains"],
-      "excludes": ["urban/cityscape if traffic is incidental to a streetscape", "art/* for illustrated/game vehicles"],
-      "examples": ["a parked sports car", "a sailboat", "a plane on a runway"]
-    },
-    {
-      "keyword": "indoor",
-      "definition": "A generic indoor scene or room not better captured by a more specific keyword.",
-      "includes": ["living rooms", "office interiors", "cafe interiors", "hallways"],
-      "excludes": ["food for a meal close-up", "document for screenshots/paperwork", "art/* for artworks"],
-      "examples": ["a furnished room", "an empty restaurant interior", "a lobby"]
-    },
-    {
       "keyword": "document",
       "definition": "Text- or UI-dominant captures: app/website screenshots, paperwork, signs, whiteboards.",
       "includes": ["app/website screenshots", "receipts", "tickets", "whiteboards", "pages of text", "text-focused signs"],

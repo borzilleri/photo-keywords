@@ -93,18 +93,6 @@ Prepared food, dishes, drinks, or ingredients shown as the subject.
 - **Not this:** `nature/plants` for a growing plant · `nature/animals` for a live animal
 - **Examples:** a bowl of pasta · a latte with foam art · a poured glass of beer
 
-### `vehicles`
-A real vehicle is the subject — land, air, water, or rail.
-- **Includes:** cars, motorcycles, bicycles, boats, airplanes, trains
-- **Not this:** `urban/cityscape` if traffic is incidental · `art/*` for illustrated/game vehicles
-- **Examples:** a parked sports car · a sailboat · a plane on a runway
-
-### `indoor`
-A generic indoor scene or room not better captured by a more specific keyword.
-- **Includes:** living rooms, office interiors, cafe interiors, hallways
-- **Not this:** `food` for a meal close-up · `document` for screenshots · `art/*` for artworks
-- **Examples:** a furnished room · an empty restaurant interior · a lobby
-
 ### `document`
 Text- or UI-dominant captures.
 - **Includes:** app/website screenshots, receipts, tickets, whiteboards, pages of text, text-focused signs
