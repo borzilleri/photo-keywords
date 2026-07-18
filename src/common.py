@@ -73,7 +73,12 @@ def setup_logging(log_path, name="photo-keywords", level=logging.INFO, console=T
     fh.setFormatter(fmt)
     logger.addHandler(fh)
     if console:
-        sh = logging.StreamHandler()
-        sh.setFormatter(fmt)
-        logger.addHandler(sh)
+        out = logging.StreamHandler(sys.stdout)
+        out.setFormatter(fmt)
+        out.addFilter(lambda r: r.levelno < logging.WARNING)
+        logger.addHandler(out)
+        err = logging.StreamHandler(sys.stderr)
+        err.setFormatter(fmt)
+        err.setLevel(logging.WARNING)
+        logger.addHandler(err)
     return logger
