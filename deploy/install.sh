@@ -5,8 +5,8 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PY="$HERE/.venv/bin/python3"
-PLIST_SRC="$HERE/deploy/com.user.photo-keywords.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.user.photo-keywords.plist"
+PLIST_SRC="$HERE/deploy/io.rampant.photo-keywords.plist"
+PLIST_DST="$HOME/Library/LaunchAgents/io.rampant.photo-keywords.plist"
 CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/photo-keywords"
 DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/photo-keywords"
 STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/photo-keywords"
@@ -52,6 +52,6 @@ Installed. Finish setup manually (see INSTALL.md for detail):
 
   4. Load the daily schedule (2:15am):
        launchctl bootstrap gui/\$(id -u) "$PLIST_DST"
-       launchctl kickstart -k gui/\$(id -u)/com.user.photo-keywords   # run once now to test
+       launchctl kickstart -k gui/\$(id -u)/io.rampant.photo-keywords   # run once now to test
 
 EOF

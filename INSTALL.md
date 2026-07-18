@@ -52,8 +52,8 @@ WARN must become PASS for headless use).
 ### 5. Configure and load the schedule
 Edit `~/.config/photo-keywords/config.json` if desired (model, workers, cadence is in the plist), then:
 ```bash
-launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.photo-keywords.plist
-launchctl kickstart -k gui/$(id -u)/com.user.photo-keywords   # run once now to test
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/io.rampant.photo-keywords.plist
+launchctl kickstart -k gui/$(id -u)/io.rampant.photo-keywords   # run once now to test
 ```
 The **first run is a full backfill** of the existing library (can take a while); subsequent daily
 runs only process newly-added photos.
@@ -90,7 +90,7 @@ Change the run time by editing `StartCalendarInterval` in the installed plist, t
 - **Run manually:** `.venv/bin/python3 src/run.py` (add `--dry-run` to classify without writing,
   `--limit N` to cap).
 - **Undo a write:** `.venv/bin/python3 -m osxphotos batch-edit --undo`.
-- **Unload schedule:** `launchctl bootout gui/$(id -u)/com.user.photo-keywords`.
+- **Unload schedule:** `launchctl bootout gui/$(id -u)/io.rampant.photo-keywords`.
 - **Re-scan from scratch:** delete `~/.local/state/photo-keywords/state.json` (re-processes via
   the ledger; already-tagged photos are skipped because their UUIDs are in `results.jsonl`).
 

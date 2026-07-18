@@ -11,12 +11,15 @@ class AlreadyRunning(Exception):
 
 
 def load_watermark(state_path):
-    """Return the stored watermark datetime, or None if unset."""
+    """Return the stored watermark datetime (tz-aware), or None if unset."""
     if not os.path.exists(state_path):
         return None
     with open(state_path) as f:
         wm = json.load(f).get("watermark")
-    return datetime.fromisoformat(wm) if wm else None
+    if not wm:
+        return None
+    dt = datetime.fromisoformat(wm)
+    return dt.astimezone() if dt.tzinfo is None else dt
 
 
 def save_watermark(state_path, dt):
