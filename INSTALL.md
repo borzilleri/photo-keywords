@@ -18,9 +18,11 @@ LaunchAgent. You run these steps once on the target Mac; they require an active 
 cd ~/photo-keywords
 bash deploy/install.sh
 ```
-This creates `.venv`, installs pinned deps, makes `data/ logs/ reports/`, seeds `config.json`
-from the example, creates the chmod-600 secrets file, and writes the LaunchAgent plist. It does
-**not** load the schedule yet.
+This creates `.venv`, installs pinned deps, makes the per-user data/state dirs
+(`~/.local/share/photo-keywords`, `~/.local/state/photo-keywords/logs`), seeds
+`~/.config/photo-keywords/config.json` and `taxonomy.json` from the repo, creates the
+chmod-600 secrets file, and writes the LaunchAgent plist. It does **not** load the schedule
+yet.
 
 ### 2. Grant Full Disk Access
 Give **Full Disk Access** to the venv Python (the installer prints its exact path):
@@ -48,7 +50,7 @@ macOS **Photos** and **Automation** prompts — allow them. Re-run until all che
 WARN must become PASS for headless use).
 
 ### 5. Configure and load the schedule
-Edit `config.json` if desired (model, workers, cadence is in the plist), then:
+Edit `~/.config/photo-keywords/config.json` if desired (model, workers, cadence is in the plist), then:
 ```bash
 launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.user.photo-keywords.plist
 launchctl kickstart -k gui/$(id -u)/com.user.photo-keywords   # run once now to test
@@ -56,7 +58,7 @@ launchctl kickstart -k gui/$(id -u)/com.user.photo-keywords   # run once now to 
 The **first run is a full backfill** of the existing library (can take a while); subsequent daily
 runs only process newly-added photos.
 
-## Configuration (`config.json`)
+## Configuration (`~/.config/photo-keywords/config.json`)
 
 | key | default | meaning |
 |-----|---------|---------|
@@ -67,15 +69,21 @@ runs only process newly-added photos.
 | `with_parents` | `false` | also write the bare parent keyword (`nature` alongside `nature/water`) |
 | `apply_enabled` | `true` | write keywords to Photos (set `false` for classify-only) |
 | `claude_bin` | `claude` | path/name of the claude binary |
+| `data_dir` | `~/.local/share/photo-keywords` | results, thumbnails, reports (set to override) |
+| `state_dir` | `~/.local/state/photo-keywords` | state, lockfile, logs (set to override) |
+| `taxonomy_path` | `~/.config/photo-keywords/taxonomy.json` | active taxonomy (falls back to the bundled copy) |
 | `secrets_file` | `~/.config/photo-keywords/env` | where `CLAUDE_CODE_OAUTH_TOKEN` lives |
+
+Locations honor `$XDG_CONFIG_HOME` / `$XDG_DATA_HOME` / `$XDG_STATE_HOME`; the config file
+itself can be relocated with `--config PATH` or `$PHOTO_KEYWORDS_CONFIG`.
 
 Change the run time by editing `StartCalendarInterval` in the installed plist, then re-`bootstrap`.
 
 ## Where things land
 
-- **Logs:** `logs/photo-keywords.log` (rotating) and `logs/launchd.{out,err}.log`.
-- **No-match reports:** `reports/nomatch-YYYY-MM-DD.md` — one per run; review and delete as you like.
-- **State/ledger:** `data/state.json` (watermark), `data/results.jsonl` (every classified photo).
+- **Logs:** `~/.local/state/photo-keywords/logs/photo-keywords.log` (rotating) and `logs/launchd.{out,err}.log`.
+- **No-match reports:** `~/.local/share/photo-keywords/reports/nomatch-YYYY-MM-DD.md` — one per run; review and delete as you like.
+- **State/ledger:** `~/.local/state/photo-keywords/state.json` (watermark), `~/.local/share/photo-keywords/results.jsonl` (every classified photo).
 
 ## Operating
 
@@ -83,8 +91,8 @@ Change the run time by editing `StartCalendarInterval` in the installed plist, t
   `--limit N` to cap).
 - **Undo a write:** `.venv/bin/python3 -m osxphotos batch-edit --undo`.
 - **Unload schedule:** `launchctl bootout gui/$(id -u)/com.user.photo-keywords`.
-- **Re-scan from scratch:** delete `data/state.json` (re-processes via the ledger; already-tagged
-  photos are skipped because their UUIDs are in `results.jsonl`).
+- **Re-scan from scratch:** delete `~/.local/state/photo-keywords/state.json` (re-processes via
+  the ledger; already-tagged photos are skipped because their UUIDs are in `results.jsonl`).
 
 ## Notes & limits
 
@@ -94,4 +102,5 @@ Change the run time by editing `StartCalendarInterval` in the installed plist, t
 - Keyword writes are **append-only** (existing keywords preserved) and go through AppleScript
   (the only way Apple Photos allows keyword editing) — hence the Automation→Photos requirement.
 - **Fallback if headless auth/write is blocked:** set `apply_enabled: false` to classify-only and
-  review `reports/` + `results.jsonl`, then run `src/apply_keywords.py` manually when logged in.
+  review the `reports/` + `results.jsonl` under `~/.local/share/photo-keywords/`, then run
+  `src/apply_keywords.py` manually when logged in.

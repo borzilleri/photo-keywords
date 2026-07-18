@@ -7,12 +7,31 @@ import sys
 from logging.handlers import RotatingFileHandler
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+APP_NAME = "photo-keywords"
 
 
 def resolve_path(p, root=PROJECT_ROOT):
     """Expand ~ and resolve a possibly-relative path against the project root."""
     p = os.path.expanduser(p)
     return p if os.path.isabs(p) else os.path.join(root, p)
+
+
+def _xdg_dir(env_var, default_rel):
+    """Per-user XDG base dir (honoring the env var) with the app name appended."""
+    base = os.environ.get(env_var) or os.path.join(os.path.expanduser("~"), default_rel)
+    return os.path.join(base, APP_NAME)
+
+
+def xdg_config_dir():
+    return _xdg_dir("XDG_CONFIG_HOME", ".config")
+
+
+def xdg_data_dir():
+    return _xdg_dir("XDG_DATA_HOME", ".local/share")
+
+
+def xdg_state_dir():
+    return _xdg_dir("XDG_STATE_HOME", ".local/state")
 
 
 def osxphotos_cmd():

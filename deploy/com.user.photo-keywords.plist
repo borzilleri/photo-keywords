@@ -32,9 +32,9 @@
     </dict>
 
     <key>StandardOutPath</key>
-    <string>__PROJECT__/logs/launchd.out.log</string>
+    <string>__HOME__/.local/state/photo-keywords/logs/launchd.out.log</string>
     <key>StandardErrorPath</key>
-    <string>__PROJECT__/logs/launchd.err.log</string>
+    <string>__HOME__/.local/state/photo-keywords/logs/launchd.err.log</string>
 
     <key>ProcessType</key>
     <string>Background</string>

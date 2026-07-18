@@ -72,7 +72,25 @@ lookback window, deduped against `results.jsonl`).
 - **Set up / install:** see [`INSTALL.md`](./INSTALL.md).
 - **Verify access + token:** `python src/preflight.py` (the "doctor" — checks Full Disk Access,
   Automation→Photos, binaries, and a live Claude auth test).
-- **Configure:** `config.json` (copy from `config.example.json`).
+- **Configure:** `~/.config/photo-keywords/config.json` (seeded from `config.example.json` by
+  `install.sh`). Override the file location with `--config PATH` or `$PHOTO_KEYWORDS_CONFIG`.
+
+### Paths (scheduled run)
+
+`run.py` keeps nothing in the repo. Defaults follow the XDG base-dir spec:
+
+| What | Default | Override |
+|------|---------|----------|
+| config + secrets + taxonomy | `~/.config/photo-keywords/` | `$XDG_CONFIG_HOME`; `taxonomy_path`/`secrets_file` in config |
+| data (`results.jsonl`, `thumbnails/`, `reports/`) | `~/.local/share/photo-keywords/` | `data_dir` in config; `$XDG_DATA_HOME` |
+| state + logs (`state.json`, `run.lock`, `logs/`) | `~/.local/state/photo-keywords/` | `state_dir` in config; `$XDG_STATE_HOME` |
+
+`taxonomy.json` is seeded into the config dir on install; if that copy is missing, `run.py`
+falls back to the bundled repo copy.
+
+**Migrating existing `./data`:** move `results.jsonl` and `thumbnails/` into
+`~/.local/share/photo-keywords/`, and `state.json`/`run.lock` into
+`~/.local/state/photo-keywords/`, to preserve the watermark and processed-results dedup.
 
 ## Tuning
 
@@ -107,4 +125,5 @@ lookback window, deduped against `results.jsonl`).
 | `config.example.json` | Template for `config.json` (scheduled-run settings) |
 | `deploy/` | LaunchAgent plist template + `install.sh` |
 | `INSTALL.md` | Target-Mac setup runbook |
-| `data/` | Generated: thumbnails, manifest, results, state, reports |
+| `~/.local/share/photo-keywords/` | Generated (scheduled run): thumbnails, results, reports |
+| `~/.local/state/photo-keywords/` | Generated (scheduled run): state, lockfile, logs |

@@ -1,4 +1,5 @@
 {
+  "_comment": "Paths default to XDG per-user dirs: data_dir=~/.local/share/photo-keywords, state_dir=~/.local/state/photo-keywords, taxonomy_path and secrets_file under ~/.config/photo-keywords. Set any of data_dir/state_dir/taxonomy_path/secrets_file to an absolute path to override. This file is loaded from ~/.config/photo-keywords/config.json ($PHOTO_KEYWORDS_CONFIG or --config override it).",
   "model": "sonnet",
   "workers": 4,
   "thumbnail_size": 1024,
@@ -7,6 +8,5 @@
   "with_parents": false,
   "apply_enabled": true,
   "library_path": null,
-  "claude_bin": "claude",
-  "secrets_file": "~/.config/photo-keywords/env"
+  "claude_bin": "claude"
 }
